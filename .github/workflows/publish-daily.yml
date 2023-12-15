@@ -18,5 +18,5 @@ jobs:
         sudo rm -rf $HOME/.config/snapcraft
     - name: publish snap
       env:
-        SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.STORE_LOGIN }}
+        SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
       run: snapcraft upload --release=edge luxcore*.snap

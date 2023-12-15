@@ -1,0 +1,10 @@
+--- /usr/include/boost/serialization/unordered_collections_load_imp.hpp	2023-12-15 15:51:41.166521529 +0100
++++ /usr/include/boost/serialization/unordered_collections_load_imp.hpp	2023-12-15 15:51:30.502549814 +0100
+@@ -34,6 +34,7 @@
+ #include <boost/serialization/nvp.hpp>
+ #include <boost/serialization/collection_size_type.hpp>
+ #include <boost/serialization/item_version_type.hpp>
++#include <boost/serialization/library_version_type.hpp>
+ 
+ namespace boost{
+ namespace serialization {

@@ -85,7 +85,7 @@ jobs:
       - name: publish snap as branch to edge/pr-$id
         id: upload_snap
         env:
-          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.STORE_LOGIN }}
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
         run: |
           pr_number="${{ steps.get_pr_data.outputs.pr_number }}"
           snap_channel="edge/pr-${pr_number}"

@@ -1,0 +1,11 @@
+--- /root/parts/luxcore/src/deps/spdlog-1.8.0/include/spdlog/common-inl.h	2023-12-15 15:58:00.473536947 +0100
++++ /root/parts/luxcore/src/deps/spdlog-1.8.0/include/spdlog/common-inl.h	2023-12-15 15:56:29.073773202 +0100
+@@ -54,7 +54,7 @@
+ SPDLOG_INLINE spdlog_ex::spdlog_ex(const std::string &msg, int last_errno)
+ {
+     memory_buf_t outbuf;
+-    fmt::format_system_error(outbuf, last_errno, msg);
++    fmt::format_system_error(outbuf, last_errno, msg.c_str());
+     msg_ = fmt::to_string(outbuf);
+ }
+ 

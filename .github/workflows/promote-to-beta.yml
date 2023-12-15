@@ -14,7 +14,7 @@ jobs:
       run: sudo snap install snapcraft --classic
     - name: promote from edge to beta
       env:
-        SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.STORE_LOGIN }}
+        SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
       run: |
         edge_revision="$(curl -H 'Snap-Device-Series: 16' \
           'https://api.snapcraft.io/v2/snaps/info/luxcore' \

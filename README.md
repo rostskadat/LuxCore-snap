@@ -23,4 +23,4 @@ There are three maintained channels for this snap:
 There are multiple apps/commands included in the snap:
 
 - `luxcore.luxcoreui`: Run luxcoreui
-- `freecad.luxcoreconsole`: Run luxcoreconsole
+- `luxcore.luxcoreconsole`: Run luxcoreconsole
