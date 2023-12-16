@@ -1,7 +1,7 @@
 name: luxcore
-base: core22
+base: core20
 #adopt-info: luxcore
-version: test
+version: 0.0.1
 issues: https://github.com/rostskadat/LuxCore-snap/issues
 website: https://luxcorerender.org/
 summary: A physically based and unbiased rendering engine
@@ -31,14 +31,14 @@ license: LGPL-2.0-or-later
 #     symlink: $SNAP/usr/share/openmpi
 #   /etc/openmpi:
 #     bind: $SNAP/etc/openmpi
-#   /usr/lib/$CRAFT_ARCH_TRIPLET/openmpi:
-#     bind: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/openmpi
+#   /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/openmpi:
+#     bind: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/openmpi
 #   /usr/bin/orted:
 #     symlink: $SNAP/usr/bin/orted
 #   /usr/share/pmix:
 #     symlink: $SNAP/usr/share/pmix
-#   /usr/lib/$CRAFT_ARCH_TRIPLET/pmix:
-#     symlink: $SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/pmix
+#   /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pmix:
+#     symlink: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pmix
 #   /etc/matplotlibrc:
 #     bind-file: $SNAP/etc/matplotlibrc
 #   /usr/share/matplotlib:
@@ -53,7 +53,7 @@ license: LGPL-2.0-or-later
 #     symlink: $SNAP/usr/share/povray-3.7
 
 environment:
-  LD_LIBRARY_PATH: "$SNAP/usr/lib/:$SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/:$LD_LIBRARY_PATH"
+  LD_LIBRARY_PATH: "$SNAP/usr/lib/:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/:$LD_LIBRARY_PATH"
   GIT_EXEC_PATH: $SNAP/usr/lib/git-core
   GIT_TEMPLATE_DIR: $SNAP/usr/share/git-core/templates
   GIT_CONFIG_NOSYSTEM: 1
@@ -72,17 +72,6 @@ apps:
 
 parts:
 
-  patches:
-    plugin: dump
-    source: $CRAFT_PROJECT_DIR/snap/local/patches
-    source-type: local
-    build-packages:
-      - libboost-all-dev
-    override-build: |
-      # This patches a Boost header file. I avoid failure if the patch is already applied
-      patch --forward --directory=/ --strip=0 --input=$CRAFT_PART_SRC/patch_001.patch || true
-      echo -n 
-
   oidin:
     plugin: dump
     source: https://github.com/OpenImageDenoise/oidn/releases/download/v2.1.0/oidn-2.1.0.x86_64.linux.tar.gz
@@ -93,15 +82,19 @@ parts:
     plugin: cmake
     source: https://github.com/LuxCoreRender/LuxCore.git
     cmake-parameters:
-      - -DCMAKE_CXX_FLAGS="-fPIC"
-      - -DCMAKE_PREFIX_PATH=/usr/lib/$CRAFT_ARCH_TRIPLET:/usr/include/$CRAFT_ARCH_TRIPLET
+      - -DCMAKE_CXX_FLAGS_INIT="-fPIC" # Required for lib/pyluxcore.so
+      - -DCMAKE_C_FLAGS_INIT="-fPIC" # Required for lib/pyluxcore.so
+      - -DCMAKE_EXE_LINKER_FLAGS_INIT="-fPIC" # Required for lib/pyluxcore.so
+      - -DCMAKE_PREFIX_PATH=/usr/lib/$SNAPCRAFT_ARCH_TRIPLET:/usr/include/$SNAPCRAFT_ARCH_TRIPLET
       - -DCMAKE_INSTALL_PREFIX=/usr
       - -DCMAKE_BUILD_TYPE=Release
       - -DOIDN_INCLUDE_PATH=/root/parts/oidin/src/include
       - -DOIDN_LIBRARY=/root/parts/oidin/src/lib/libOpenImageDenoise.so
+      # - -DBOOST_ALL_NO_LIB # To link to .so instead of .a
+      # - -DBoost_USE_STATIC_LIBS=OFF
       - -DPYTHON_EXECUTABLE=/usr/bin/python3
-      - -DPYTHON_INCLUDE_DIR=/usr/include/python3.10
-      - -DPYTHON_LIBRARY=/usr/lib/$CRAFT_ARCH_TRIPLET/libpython3.10.so
+      - -DPYTHON_INCLUDE_DIR=/usr/include/python3.8
+      - -DPYTHON_LIBRARY=/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libpython3.8.so
     build-packages:
       - bison
       - flex
@@ -116,9 +109,9 @@ parts:
       - libopencolorio-dev
       - libopenexr-dev # Required
       - libopenimageio-dev
-      #- libopenvdb-dev
+      # - libopenvdb-dev
       - libpng-dev
-      - libtbb2-dev # Required
+      - libtbb-dev # Required / libtbb2-dev
       - libtiff5-dev
       - python3-dev
       - python3-pip
@@ -126,10 +119,13 @@ parts:
       - libblosc1
       - libembree3-3
       - libopencolorio1v5
-      - libopenexr25
-      - libopenvdb8.1
+      - libopenexr24 # libopenexr25
+      - libopenvdb6.2 # libopenvdb8.1
       - libtbb2
       - python3-pyopencolorio
-    override-build: |
-      patch --forward --directory=/ --strip=0 --input=$CRAFT_PROJECT_DIR/snap/local/patches/patche_002.patch || true
-      snapcraftctl build
+    override-pull: |
+      snapcraftctl pull
+      # No failure as it might have already been applied...
+      # patch --forward --directory=/ --strip=0 --input=$SNAPCRAFT_PROJECT_DIR/snap/local/patches/patch_001.patch || true
+      patch --forward --directory=/ --strip=0 --input=$SNAPCRAFT_PROJECT_DIR/snap/local/patches/patch_002.patch || true
+      patch --forward --directory=/ --strip=0 --input=$SNAPCRAFT_PROJECT_DIR/snap/local/patches/patch_003.patch || true

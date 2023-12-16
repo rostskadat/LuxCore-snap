@@ -24,3 +24,14 @@ There are multiple apps/commands included in the snap:
 
 - `luxcore.luxcoreui`: Run luxcoreui
 - `luxcore.luxcoreconsole`: Run luxcoreconsole
+
+## Troubleshooting
+
+### Docker and LXD
+
+If your image can not connect to internet and you have docker installed, it might be that Docker has a FW rule that drops packet. Execute the following command to fix the `DOCKER_USER` rule
+
+```shell
+sudo iptables -I DOCKER-USER -i lxdbr0 -j ACCEPT
+sudo iptables -I DOCKER-USER -o lxdbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+```

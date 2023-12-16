@@ -1,0 +1,11 @@
+--- /root/parts/luxcore/src/cmake/Dependencies.cmake	2023-12-16 21:24:49.080000000 +0100
++++ /root/parts/luxcore/src/cmake/Dependencies.cmake	2023-12-16 21:24:29.848000000 +0100
+@@ -57,7 +57,7 @@
+ include_directories(${PYTHON_INCLUDE_DIRS})
+ 
+ # Find Boost
+-set(Boost_USE_STATIC_LIBS       ON)
++set(Boost_USE_STATIC_LIBS       OFF)
+ set(Boost_USE_MULTITHREADED     ON)
+ set(Boost_USE_STATIC_RUNTIME    OFF)
+ set(BOOST_ROOT                  "${BOOST_SEARCH_PATH}")
