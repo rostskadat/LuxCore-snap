@@ -79,24 +79,23 @@ parts:
 
   # https://wiki.luxcorerender.org/Compiling_LuxCore#Linux
   luxcore:
+    after: [oidin]
     plugin: cmake
     source: https://github.com/LuxCoreRender/LuxCore.git
     cmake-parameters:
-      - -DCMAKE_CXX_FLAGS_INIT="-fPIC" # Required for lib/pyluxcore.so
-      - -DCMAKE_C_FLAGS_INIT="-fPIC" # Required for lib/pyluxcore.so
-      - -DCMAKE_EXE_LINKER_FLAGS_INIT="-fPIC" # Required for lib/pyluxcore.so
       - -DCMAKE_PREFIX_PATH=/usr/lib/$SNAPCRAFT_ARCH_TRIPLET:/usr/include/$SNAPCRAFT_ARCH_TRIPLET
+      # - -DLUXRAYS_CUSTOM_CONFIG=$SNAPCRAFT_PART_SRC/cmake/SpecializedConfig/Config_Linux-Static.cmake
+      - -DOIDN_INCLUDE_PATH:PATH=/root/parts/oidin/src/include
+      - -DOIDN_LIBRARY:FILEPATH=/root/parts/oidin/src/lib/libOpenImageDenoise.so
+      - -Wno-dev
       - -DCMAKE_INSTALL_PREFIX=/usr
       - -DCMAKE_BUILD_TYPE=Release
-      - -DOIDN_INCLUDE_PATH=/root/parts/oidin/src/include
-      - -DOIDN_LIBRARY=/root/parts/oidin/src/lib/libOpenImageDenoise.so
-      # - -DBOOST_ALL_NO_LIB # To link to .so instead of .a
-      # - -DBoost_USE_STATIC_LIBS=OFF
       - -DPYTHON_EXECUTABLE=/usr/bin/python3
-      - -DPYTHON_INCLUDE_DIR=/usr/include/python3.8
-      - -DPYTHON_LIBRARY=/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libpython3.8.so
+      - -DPYTHON_INCLUDE_DIR:PATH=/usr/include/python3.8
+      - -DPYTHON_LIBRARY:FILEPATH=/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libpython3.8.so
     build-packages:
       - bison
+      - doxygen
       - flex
       - g++
       - git
@@ -126,6 +125,27 @@ parts:
     override-pull: |
       snapcraftctl pull
       # No failure as it might have already been applied...
+      # Adding missing include in boost serialization library
       # patch --forward --directory=/ --strip=0 --input=$SNAPCRAFT_PROJECT_DIR/snap/local/patches/patch_001.patch || true
+      # Missing conversion in spdlog library
       patch --forward --directory=/ --strip=0 --input=$SNAPCRAFT_PROJECT_DIR/snap/local/patches/patch_002.patch || true
+      # Makes sure to use dynamic library instead of static library.
+      # Required to get the pyluxcore to link when libboost_thread is not recompilable.
       patch --forward --directory=/ --strip=0 --input=$SNAPCRAFT_PROJECT_DIR/snap/local/patches/patch_003.patch || true
+    override-build: |
+      # Since there is no install target the default build fails :(
+      #sed -i -e 's/^DESTDIR=\(.*install\)/#DESTDIR=\1/' $SNAPCRAFT_PART_BUILD/../run/build.sh
+      #snapcraftctl build
+      # We need to reproduce the whole build command found at
+      # REF: https://github.com/LuxCoreRender/LinuxCompile.git/build
+      cmake -G "Unix Makefiles" -Wno-dev \
+        -DCMAKE_PREFIX_PATH=/usr/lib/$SNAPCRAFT_ARCH_TRIPLET:/usr/include/$SNAPCRAFT_ARCH_TRIPLET \
+        -DOIDN_INCLUDE_PATH:PATH=/root/parts/oidin/src/include \
+        -DOIDN_LIBRARY:FILEPATH=/root/parts/oidin/src/lib/libOpenImageDenoise.so \
+        -Wno-dev \
+        -DCMAKE_INSTALL_PREFIX:PATH=/usr \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DPYTHON_INCLUDE_DIR:PATH=/usr/include/python3.8 \
+        -DPYTHON_LIBRARY:FILEPATH=/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libpython3.8.so \
+        $SNAPCRAFT_PART_SRC
+      cmake --build $SNAPCRAFT_PART_BUILD -- -j3
