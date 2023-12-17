@@ -1,6 +1,6 @@
 name: luxcore
-base: core20
-#adopt-info: luxcore
+base: core22
+adopt-info: luxcore
 version: 0.0.1
 issues: https://github.com/rostskadat/LuxCore-snap/issues
 website: https://luxcorerender.org/
@@ -58,8 +58,6 @@ environment:
   GIT_TEMPLATE_DIR: $SNAP/usr/share/git-core/templates
   GIT_CONFIG_NOSYSTEM: 1
   PIP_USER: 1
-#  PYTHONPATH: &pypath $PYTHONUSERBASE/lib/python3.10/site-packages:$SNAP/lib/python3.10/site-packages:$SNAP/usr/lib/python3/dist-packages
-#  SNAP_PYTHONPATH: *pypath
 
 apps:
   luxcoreui:
@@ -72,27 +70,30 @@ apps:
 
 parts:
 
+  # There are no distribution package for OIDIN. We use a precompiled version
   oidin:
     plugin: dump
     source: https://github.com/OpenImageDenoise/oidn/releases/download/v2.1.0/oidn-2.1.0.x86_64.linux.tar.gz
     source-type: tar
 
-  # https://wiki.luxcorerender.org/Compiling_LuxCore#Linux
+  # This part builds LuxCore and reproduce the custom script available at
+  # https://wiki.luxcorerender.org/Compiling_LuxCore#Linux. However 
+  # distribution package are prefered as well as generating dynamically linked
+  # executables.
   luxcore:
     after: [oidin]
     plugin: cmake
     source: https://github.com/LuxCoreRender/LuxCore.git
     cmake-parameters:
       - -DCMAKE_PREFIX_PATH=/usr/lib/$SNAPCRAFT_ARCH_TRIPLET:/usr/include/$SNAPCRAFT_ARCH_TRIPLET
-      # - -DLUXRAYS_CUSTOM_CONFIG=$SNAPCRAFT_PART_SRC/cmake/SpecializedConfig/Config_Linux-Static.cmake
       - -DOIDN_INCLUDE_PATH:PATH=/root/parts/oidin/src/include
       - -DOIDN_LIBRARY:FILEPATH=/root/parts/oidin/src/lib/libOpenImageDenoise.so
       - -Wno-dev
       - -DCMAKE_INSTALL_PREFIX=/usr
       - -DCMAKE_BUILD_TYPE=Release
       - -DPYTHON_EXECUTABLE=/usr/bin/python3
-      - -DPYTHON_INCLUDE_DIR:PATH=/usr/include/python3.8
-      - -DPYTHON_LIBRARY:FILEPATH=/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libpython3.8.so
+      - -DPYTHON_INCLUDE_DIR:PATH=/usr/include/python3.10
+      - -DPYTHON_LIBRARY:FILEPATH=/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libpython3.10.so
     build-packages:
       - bison
       - doxygen
@@ -100,17 +101,17 @@ parts:
       - g++
       - git
       - libblosc-dev
-      - libboost-all-dev # Required
+      - libboost-all-dev
       - libbz2-dev
-      - libembree-dev # Required
+      - libembree-dev
       - libgl1-mesa-dev
       - libgtk-3-dev
       - libopencolorio-dev
-      - libopenexr-dev # Required
+      - libopenexr-dev
       - libopenimageio-dev
-      # - libopenvdb-dev
+      # - core20: libopenvdb-dev
       - libpng-dev
-      - libtbb-dev # Required / libtbb2-dev
+      - libtbb2-dev # core20: libtbb-dev / version 2020.3-1
       - libtiff5-dev
       - python3-dev
       - python3-pip
@@ -118,24 +119,25 @@ parts:
       - libblosc1
       - libembree3-3
       - libopencolorio1v5
-      - libopenexr24 # libopenexr25
-      - libopenvdb6.2 # libopenvdb8.1
-      - libtbb2
+      - libopenexr25 # core20: libopenexr24
+      - libopenvdb8.1 # core20: libopenvdb6.2
+      - libtbb2 # core20: libtbb / version 2020.3-1
       - python3-pyopencolorio
     override-pull: |
-      snapcraftctl pull
+      craftctl default
       # No failure as it might have already been applied...
       # Adding missing include in boost serialization library
-      # patch --forward --directory=/ --strip=0 --input=$SNAPCRAFT_PROJECT_DIR/snap/local/patches/patch_001.patch || true
+      patch --forward --directory=/ --strip=0 --input=$SNAPCRAFT_PROJECT_DIR/snap/local/patches/patch_001.patch || true
       # Missing conversion in spdlog library
       patch --forward --directory=/ --strip=0 --input=$SNAPCRAFT_PROJECT_DIR/snap/local/patches/patch_002.patch || true
       # Makes sure to use dynamic library instead of static library.
       # Required to get the pyluxcore to link when libboost_thread is not recompilable.
       patch --forward --directory=/ --strip=0 --input=$SNAPCRAFT_PROJECT_DIR/snap/local/patches/patch_003.patch || true
+      craftctl set version=$(git describe --tags --abbrev=10)
     override-build: |
       # Since there is no install target the default build fails :(
       #sed -i -e 's/^DESTDIR=\(.*install\)/#DESTDIR=\1/' $SNAPCRAFT_PART_BUILD/../run/build.sh
-      #snapcraftctl build
+      #craftctl default
       # We need to reproduce the whole build command found at
       # REF: https://github.com/LuxCoreRender/LinuxCompile.git/build
       cmake -G "Unix Makefiles" -Wno-dev \
@@ -145,7 +147,7 @@ parts:
         -Wno-dev \
         -DCMAKE_INSTALL_PREFIX:PATH=/usr \
         -DCMAKE_BUILD_TYPE=Release \
-        -DPYTHON_INCLUDE_DIR:PATH=/usr/include/python3.8 \
-        -DPYTHON_LIBRARY:FILEPATH=/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libpython3.8.so \
+        -DPYTHON_INCLUDE_DIR:PATH=/usr/include/python3.10 \
+        -DPYTHON_LIBRARY:FILEPATH=/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libpython3.10.so \
         $SNAPCRAFT_PART_SRC
       cmake --build $SNAPCRAFT_PART_BUILD -- -j3
