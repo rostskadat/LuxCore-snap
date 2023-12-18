@@ -1,5 +1,5 @@
---- /root/parts/luxcore/src/cmake/Dependencies.cmake	2023-12-16 21:24:49.080000000 +0100
-+++ /root/parts/luxcore/src/cmake/Dependencies.cmake	2023-12-16 21:24:29.848000000 +0100
+--- cmake/Dependencies.cmake	2023-12-16 21:24:49.080000000 +0100
++++ cmake/Dependencies.cmake	2023-12-16 21:24:29.848000000 +0100
 @@ -57,7 +57,7 @@
  include_directories(${PYTHON_INCLUDE_DIRS})
  

@@ -23,7 +23,7 @@ architectures:
   - build-on: [amd64]
 
 environment:
-  LD_LIBRARY_PATH: "$SNAP/usr/lib/:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/:$LD_LIBRARY_PATH"
+  LD_LIBRARY_PATH: "$SNAP/usr/lib/:$SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/:$LD_LIBRARY_PATH"
   GIT_EXEC_PATH: $SNAP/usr/lib/git-core
   GIT_TEMPLATE_DIR: $SNAP/usr/share/git-core/templates
   GIT_CONFIG_NOSYSTEM: 1
@@ -119,12 +119,12 @@ parts:
       craftctl default
       craftctl set version=$(git describe --tags --abbrev=10)
       # Adding missing include in boost serialization library
-      patch --forward --directory=/ --strip=0 --input=$SNAPCRAFT_PROJECT_DIR/snap/local/patches/patch_001.patch || true
+      patch --forward --directory=/ --strip=0 --input=$CRAFT_PROJECT_DIR/snap/local/patches/patch_001.patch || true
       # Missing conversion in spdlog library
-      patch --forward --directory=/ --strip=0 --input=$SNAPCRAFT_PROJECT_DIR/snap/local/patches/patch_002.patch || true
+      patch --forward --directory=$CRAFT_PART_SRC --strip=0 --input=$CRAFT_PROJECT_DIR/snap/local/patches/patch_002.patch || true
       # Makes sure to use dynamic library instead of static library.
       # Required to get the pyluxcore to link when libboost_thread is not recompilable.
-      patch --forward --directory=/ --strip=0 --input=$SNAPCRAFT_PROJECT_DIR/snap/local/patches/patch_003.patch || true
+      patch --forward --directory=$CRAFT_PART_SRC --strip=0 --input=$CRAFT_PROJECT_DIR/snap/local/patches/patch_003.patch || true
     override-build: |
       set -eux
       # Since there is no install target the default build fails :(
@@ -133,21 +133,18 @@ parts:
       # TODO: use $CRAFT_STAGE instead of '/root/parts/oidin/build' (linking 
       #   fails though)
       cmake -G "Unix Makefiles" -Wno-dev \
-        -DCMAKE_PREFIX_PATH=/usr/lib/$SNAPCRAFT_ARCH_TRIPLET:/usr/include/$SNAPCRAFT_ARCH_TRIPLET \
+        -DCMAKE_PREFIX_PATH=/usr/lib/$CRAFT_ARCH_TRIPLET:/usr/include/$CRAFT_ARCH_TRIPLET \
         -DOIDN_INCLUDE_PATH:PATH=/root/parts/oidin/build/include \
         -DOIDN_LIBRARY:FILEPATH=/root/parts/oidin/build/lib/libOpenImageDenoise.so \
         -Wno-dev \
         -DCMAKE_INSTALL_PREFIX:PATH=/usr \
         -DCMAKE_BUILD_TYPE=Release \
         -DPYTHON_INCLUDE_DIR:PATH=/usr/include/python3.10 \
-        -DPYTHON_LIBRARY:FILEPATH=/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libpython3.10.so \
-        $SNAPCRAFT_PART_SRC
-      cmake --build $SNAPCRAFT_PART_BUILD --target luxcoreui -- -j2
-      cmake --build $SNAPCRAFT_PART_BUILD --target luxcoreconsole -- -j2
+        -DPYTHON_LIBRARY:FILEPATH=/usr/lib/$CRAFT_ARCH_TRIPLET/libpython3.10.so \
+        $CRAFT_PART_SRC
+      cmake --build $CRAFT_PART_BUILD --target luxcoreui -- -j2
+      cmake --build $CRAFT_PART_BUILD --target luxcoreconsole -- -j2
       # There is unfortunately no install target :(
-      [ -d $SNAPCRAFT_PART_INSTALL/usr/bin ] || mkdir $SNAPCRAFT_PART_INSTALL/usr/bin
-      cp -f $SNAPCRAFT_PART_BUILD/bin/luxcoreui $SNAPCRAFT_PART_INSTALL/usr/bin/luxcoreui
-      cp -f $SNAPCRAFT_PART_BUILD/bin/luxcoreconsole $SNAPCRAFT_PART_INSTALL/usr/bin/luxcoreconsole
-    stage:
-      - usr/bin/luxcoreui
-      - usr/bin/luxcoreconsole
+      [ -d $CRAFT_PART_INSTALL/usr/bin ] || mkdir $CRAFT_PART_INSTALL/usr/bin
+      cp -f $CRAFT_PART_BUILD/bin/luxcoreui $CRAFT_PART_INSTALL/usr/bin/luxcoreui
+      cp -f $CRAFT_PART_BUILD/bin/luxcoreconsole $CRAFT_PART_INSTALL/usr/bin/luxcoreconsole
