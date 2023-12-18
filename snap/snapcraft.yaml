@@ -23,7 +23,7 @@ architectures:
   - build-on: [amd64]
 
 environment:
-  LD_LIBRARY_PATH: "$SNAP/usr/lib/:$SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/:$LD_LIBRARY_PATH"
+  LD_LIBRARY_PATH: "$SNAP/lib:$SNAP/usr/lib:$SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/:$LD_LIBRARY_PATH"
   GIT_EXEC_PATH: $SNAP/usr/lib/git-core
   GIT_TEMPLATE_DIR: $SNAP/usr/share/git-core/templates
   GIT_CONFIG_NOSYSTEM: 1
@@ -35,13 +35,9 @@ apps:
     plugs: &plugs
       - opengl
       - x11
-    environment:
-      LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/lib
   luxcoreconsole:
     command: usr/bin/luxcoreconsole
     plugs: *plugs
-    environment:
-      LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/lib
 
 parts:
   # There are no distribution package for OIDIN. We use a precompiled version
@@ -134,8 +130,8 @@ parts:
       #   fails though)
       cmake -G "Unix Makefiles" -Wno-dev \
         -DCMAKE_PREFIX_PATH=/usr/lib/$CRAFT_ARCH_TRIPLET:/usr/include/$CRAFT_ARCH_TRIPLET \
-        -DOIDN_INCLUDE_PATH:PATH=/root/parts/oidin/build/include \
-        -DOIDN_LIBRARY:FILEPATH=/root/parts/oidin/build/lib/libOpenImageDenoise.so \
+        -DOIDN_INCLUDE_PATH:PATH=$CRAFT_PART_INSTALL/include \
+        -DOIDN_LIBRARY:FILEPATH=$CRAFT_PART_INSTALL/lib/libOpenImageDenoise.so \
         -Wno-dev \
         -DCMAKE_INSTALL_PREFIX:PATH=/usr \
         -DCMAKE_BUILD_TYPE=Release \
