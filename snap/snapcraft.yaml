@@ -20,38 +20,6 @@ confinement: strict
 compression: lzo
 license: LGPL-2.0-or-later
 
-# layout:
-#   /usr/share/X11:
-#     symlink: $SNAP/kf5/usr/share/X11
-#   /usr/share/libdrm/amdgpu.ids:
-#     bind-file: $SNAP/kf5/usr/share/libdrm/amdgpu.ids
-#   /usr/bin/mpirun: # ElmerSolver_mpi
-#     symlink: $SNAP/usr/bin/orterun
-#   /usr/share/openmpi:
-#     symlink: $SNAP/usr/share/openmpi
-#   /etc/openmpi:
-#     bind: $SNAP/etc/openmpi
-#   /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/openmpi:
-#     bind: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/openmpi
-#   /usr/bin/orted:
-#     symlink: $SNAP/usr/bin/orted
-#   /usr/share/pmix:
-#     symlink: $SNAP/usr/share/pmix
-#   /usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pmix:
-#     symlink: $SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/pmix
-#   /etc/matplotlibrc:
-#     bind-file: $SNAP/etc/matplotlibrc
-#   /usr/share/matplotlib:
-#     symlink: $SNAP/usr/share/matplotlib
-#   /usr/share/qt5:
-#     symlink: $SNAP/kf5/usr/share/qt5
-#   /usr/bin/dot: # Graphviz for dependency graph
-#     symlink: $SNAP/usr/bin/dot
-#   /usr/bin/unflatten: # Graphviz for dependency graph
-#     symlink: $SNAP/usr/bin/unflatten
-#   /usr/share/povray-3.7: # Raytracing
-#     symlink: $SNAP/usr/share/povray-3.7
-
 environment:
   LD_LIBRARY_PATH: "$SNAP/usr/lib/:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/:$LD_LIBRARY_PATH"
   GIT_EXEC_PATH: $SNAP/usr/lib/git-core
@@ -64,36 +32,38 @@ apps:
     command: usr/bin/luxcoreui
     plugs: &plugs
       - opengl
+      - x11
+    environment:
+      LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/lib
   luxcoreconsole:
     command: usr/bin/luxcoreconsole
     plugs: *plugs
+    environment:
+      LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$SNAP/lib
 
 parts:
-
   # There are no distribution package for OIDIN. We use a precompiled version
+  # We should use 
+  # $(dpkg-architecture --query DEB_TARGET_GNU_CPU)
+  # $(dpkg-architecture --query DEB_TARGET_ARCH_OS)
+  # to get 'x86_64' and 'linux'
   oidin:
     plugin: dump
     source: https://github.com/OpenImageDenoise/oidn/releases/download/v2.1.0/oidn-2.1.0.x86_64.linux.tar.gz
     source-type: tar
+    stage:
+      - include
+      - lib/cmake
+      - lib/libOpenImageDenoise*
 
   # This part builds LuxCore and reproduce the custom script available at
-  # https://wiki.luxcorerender.org/Compiling_LuxCore#Linux. However 
+  # https://wiki.luxcorerender.org/Compiling_LuxCore#Linux. However
   # distribution package are prefered as well as generating dynamically linked
   # executables.
   luxcore:
     after: [oidin]
     plugin: cmake
     source: https://github.com/LuxCoreRender/LuxCore.git
-    cmake-parameters:
-      - -DCMAKE_PREFIX_PATH=/usr/lib/$SNAPCRAFT_ARCH_TRIPLET:/usr/include/$SNAPCRAFT_ARCH_TRIPLET
-      - -DOIDN_INCLUDE_PATH:PATH=/root/parts/oidin/src/include
-      - -DOIDN_LIBRARY:FILEPATH=/root/parts/oidin/src/lib/libOpenImageDenoise.so
-      - -Wno-dev
-      - -DCMAKE_INSTALL_PREFIX=/usr
-      - -DCMAKE_BUILD_TYPE=Release
-      - -DPYTHON_EXECUTABLE=/usr/bin/python3
-      - -DPYTHON_INCLUDE_DIR:PATH=/usr/include/python3.10
-      - -DPYTHON_LIBRARY:FILEPATH=/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libpython3.10.so
     build-packages:
       - bison
       - doxygen
@@ -116,16 +86,40 @@ parts:
       - python3-dev
       - python3-pip
     stage-packages:
+      # We can obtain the list of snap package with:
+      # readelf --wide --dynamic luxcore |grep 'Shared library'|sed -E 's/.*\[(.*)]$/\1/'|xargs dpkg -S|cut -d: -f1|sort -u
+      #- libopencolorio1v5
+      #- libopenexr25 # core20: libopenexr24
+      #- libopenvdb8.1 # core20: libopenvdb6.2
+      #- python3-pyopencolorio
       - libblosc1
+      - libboost-chrono1.74.0
+      - libboost-filesystem1.74.0
+      - libboost-iostreams1.74.0
+      - libboost-regex1.74.0
+      - libboost-serialization1.74.0
+      - libboost-thread1.74.0
+      - libc6
       - libembree3-3
-      - libopencolorio1v5
-      - libopenexr25 # core20: libopenexr24
-      - libopenvdb8.1 # core20: libopenvdb6.2
+      - libgcc-s1
+      - libgl1
+      - libglib2.0-0
+      - libglib2.0-dev
+      - libgomp1
+      - libgtk-3-0
+      - libilmbase25
+      - libopenimageio2.2
+      - libstdc++6
       - libtbb2 # core20: libtbb / version 2020.3-1
-      - python3-pyopencolorio
+      - libx11-6
+      - libxcursor1
+      - libxi6
+      - libxinerama1
+      - libxrandr2
+      - zlib1g
     override-pull: |
       craftctl default
-      # No failure as it might have already been applied...
+      craftctl set version=$(git describe --tags --abbrev=10)
       # Adding missing include in boost serialization library
       patch --forward --directory=/ --strip=0 --input=$SNAPCRAFT_PROJECT_DIR/snap/local/patches/patch_001.patch || true
       # Missing conversion in spdlog library
@@ -133,21 +127,29 @@ parts:
       # Makes sure to use dynamic library instead of static library.
       # Required to get the pyluxcore to link when libboost_thread is not recompilable.
       patch --forward --directory=/ --strip=0 --input=$SNAPCRAFT_PROJECT_DIR/snap/local/patches/patch_003.patch || true
-      craftctl set version=$(git describe --tags --abbrev=10)
     override-build: |
+      set -eux
       # Since there is no install target the default build fails :(
-      #sed -i -e 's/^DESTDIR=\(.*install\)/#DESTDIR=\1/' $SNAPCRAFT_PART_BUILD/../run/build.sh
-      #craftctl default
       # We need to reproduce the whole build command found at
       # REF: https://github.com/LuxCoreRender/LinuxCompile.git/build
+      # TODO: use $CRAFT_STAGE instead of '/root/parts/oidin/build' (linking 
+      #   fails though)
       cmake -G "Unix Makefiles" -Wno-dev \
         -DCMAKE_PREFIX_PATH=/usr/lib/$SNAPCRAFT_ARCH_TRIPLET:/usr/include/$SNAPCRAFT_ARCH_TRIPLET \
-        -DOIDN_INCLUDE_PATH:PATH=/root/parts/oidin/src/include \
-        -DOIDN_LIBRARY:FILEPATH=/root/parts/oidin/src/lib/libOpenImageDenoise.so \
+        -DOIDN_INCLUDE_PATH:PATH=/root/parts/oidin/build/include \
+        -DOIDN_LIBRARY:FILEPATH=/root/parts/oidin/build/lib/libOpenImageDenoise.so \
         -Wno-dev \
         -DCMAKE_INSTALL_PREFIX:PATH=/usr \
         -DCMAKE_BUILD_TYPE=Release \
         -DPYTHON_INCLUDE_DIR:PATH=/usr/include/python3.10 \
         -DPYTHON_LIBRARY:FILEPATH=/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/libpython3.10.so \
         $SNAPCRAFT_PART_SRC
-      cmake --build $SNAPCRAFT_PART_BUILD -- -j3
+      cmake --build $SNAPCRAFT_PART_BUILD --target luxcoreui -- -j2
+      cmake --build $SNAPCRAFT_PART_BUILD --target luxcoreconsole -- -j2
+      # There is unfortunately no install target :(
+      [ -d $SNAPCRAFT_PART_INSTALL/usr/bin ] || mkdir $SNAPCRAFT_PART_INSTALL/usr/bin
+      cp -f $SNAPCRAFT_PART_BUILD/bin/luxcoreui $SNAPCRAFT_PART_INSTALL/usr/bin/luxcoreui
+      cp -f $SNAPCRAFT_PART_BUILD/bin/luxcoreconsole $SNAPCRAFT_PART_INSTALL/usr/bin/luxcoreconsole
+    stage:
+      - usr/bin/luxcoreui
+      - usr/bin/luxcoreconsole
