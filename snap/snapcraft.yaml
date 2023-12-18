@@ -19,6 +19,8 @@ grade: devel
 confinement: strict
 compression: lzo
 license: LGPL-2.0-or-later
+architectures:
+  - build-on: [amd64]
 
 environment:
   LD_LIBRARY_PATH: "$SNAP/usr/lib/:$SNAP/usr/lib/$SNAPCRAFT_ARCH_TRIPLET/:$LD_LIBRARY_PATH"
@@ -88,10 +90,6 @@ parts:
     stage-packages:
       # We can obtain the list of snap package with:
       # readelf --wide --dynamic luxcore |grep 'Shared library'|sed -E 's/.*\[(.*)]$/\1/'|xargs dpkg -S|cut -d: -f1|sort -u
-      #- libopencolorio1v5
-      #- libopenexr25 # core20: libopenexr24
-      #- libopenvdb8.1 # core20: libopenvdb6.2
-      #- python3-pyopencolorio
       - libblosc1
       - libboost-chrono1.74.0
       - libboost-filesystem1.74.0
