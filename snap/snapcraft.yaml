@@ -1,7 +1,6 @@
 name: luxcore
 base: core22
-adopt-info: version
-version: 0.0.1
+version: git
 issues: https://github.com/rostskadat/LuxCore-snap/issues
 website: https://luxcorerender.org/
 summary: A physically based and unbiased rendering engine
@@ -22,13 +21,6 @@ license: LGPL-2.0-or-later
 architectures:
   - build-on: [amd64]
 
-# environment:
-#   LD_LIBRARY_PATH: "$SNAP/lib:$SNAP/usr/lib:$SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/:$LD_LIBRARY_PATH"
-#   GIT_EXEC_PATH: $SNAP/usr/lib/git-core
-#   GIT_TEMPLATE_DIR: $SNAP/usr/share/git-core/templates
-#   GIT_CONFIG_NOSYSTEM: 1
-#   PIP_USER: 1
-
 apps:
   luxcoreui:
     command: usr/bin/luxcoreui
@@ -40,15 +32,6 @@ apps:
     plugs: *plugs
 
 parts:
-  version:
-    plugin: nil
-    build-packages:
-      - git
-    override-build: |
-      cd "${CRAFT_PROJECT_DIR}"
-      # git_hash=$(git rev-parse --short=8 HEAD)
-      craftctl set version=$(git describe --tags --abbrev=10)
-
   # There are no distribution package for OIDIN. We use a precompiled version
   # We should use
   # $(dpkg-architecture --query DEB_TARGET_GNU_CPU)
