@@ -7,8 +7,8 @@ website: https://luxcorerender.org/
 summary: A physically based and unbiased rendering engine
 description: |
   LuxCoreRender is a physically based and unbiased rendering engine. Based on
-  state of the art algorithms, LuxCoreRender simulates the flow of light 
-  according to physical equations, thus producing realistic images of 
+  state of the art algorithms, LuxCoreRender simulates the flow of light
+  according to physical equations, thus producing realistic images of
   photographic quality.
 
   Commands:
@@ -22,12 +22,12 @@ license: LGPL-2.0-or-later
 architectures:
   - build-on: [amd64]
 
-environment:
-  LD_LIBRARY_PATH: "$SNAP/lib:$SNAP/usr/lib:$SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/:$LD_LIBRARY_PATH"
-  GIT_EXEC_PATH: $SNAP/usr/lib/git-core
-  GIT_TEMPLATE_DIR: $SNAP/usr/share/git-core/templates
-  GIT_CONFIG_NOSYSTEM: 1
-  PIP_USER: 1
+# environment:
+#   LD_LIBRARY_PATH: "$SNAP/lib:$SNAP/usr/lib:$SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/:$LD_LIBRARY_PATH"
+#   GIT_EXEC_PATH: $SNAP/usr/lib/git-core
+#   GIT_TEMPLATE_DIR: $SNAP/usr/share/git-core/templates
+#   GIT_CONFIG_NOSYSTEM: 1
+#   PIP_USER: 1
 
 apps:
   luxcoreui:
@@ -50,7 +50,7 @@ parts:
       craftctl set version=$(git describe --tags --abbrev=10)
 
   # There are no distribution package for OIDIN. We use a precompiled version
-  # We should use 
+  # We should use
   # $(dpkg-architecture --query DEB_TARGET_GNU_CPU)
   # $(dpkg-architecture --query DEB_TARGET_ARCH_OS)
   # to get 'x86_64' and 'linux'
@@ -128,26 +128,18 @@ parts:
       patch --forward --directory=$CRAFT_PART_SRC --strip=0 --input=$CRAFT_PROJECT_DIR/snap/local/patches/patch_002.patch || true
       # Makes sure to use dynamic library instead of static library.
       # Required to get the pyluxcore to link when libboost_thread is not recompilable.
-      patch --forward --directory=$CRAFT_PART_SRC --strip=0 --input=$CRAFT_PROJECT_DIR/snap/local/patches/patch_003.patch || true
+      # patch --forward --directory=$CRAFT_PART_SRC --strip=0 --input=$CRAFT_PROJECT_DIR/snap/local/patches/patch_003.patch || true
     override-build: |
       set -eux
       # Since there is no install target the default build fails :(
-      # We need to reproduce the whole build command found at
+      # We reproduce the build command found in the LinuxCompile project at
       # REF: https://github.com/LuxCoreRender/LinuxCompile.git/build
-      # TODO: use $CRAFT_STAGE instead of '/root/parts/oidin/build' (linking 
-      #   fails though)
       cmake -G "Unix Makefiles" -Wno-dev \
         -DCMAKE_PREFIX_PATH=/usr/lib/$CRAFT_ARCH_TRIPLET:/usr/include/$CRAFT_ARCH_TRIPLET \
-        -DOIDN_INCLUDE_PATH:PATH=$CRAFT_STAGE/include \
-        -DOIDN_LIBRARY:FILEPATH=$CRAFT_STAGE/lib/libOpenImageDenoise.so \
-        -DCMAKE_INSTALL_PREFIX:PATH=/usr \
-        -DCMAKE_BUILD_TYPE=Release \
-        -DPYTHON_INCLUDE_DIR:PATH=/usr/include/python3.10 \
-        -DPYTHON_LIBRARY:FILEPATH=/usr/lib/$CRAFT_ARCH_TRIPLET/libpython3.10.so \
+        -DOIDN_SEARCH_PATH=$CRAFT_STAGE \
         $CRAFT_PART_SRC
       cmake --build $CRAFT_PART_BUILD --target luxcoreui -- -j2
       cmake --build $CRAFT_PART_BUILD --target luxcoreconsole -- -j2
-      # There is unfortunately no install target :(
       [ -d $CRAFT_PART_INSTALL/usr/bin ] || mkdir $CRAFT_PART_INSTALL/usr/bin
       cp -f $CRAFT_PART_BUILD/bin/luxcoreui $CRAFT_PART_INSTALL/usr/bin/luxcoreui
       cp -f $CRAFT_PART_BUILD/bin/luxcoreconsole $CRAFT_PART_INSTALL/usr/bin/luxcoreconsole
