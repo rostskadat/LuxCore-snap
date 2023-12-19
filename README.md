@@ -35,3 +35,14 @@ If your image can not connect to internet and you have docker installed, it migh
 sudo iptables -I DOCKER-USER -i lxdbr0 -j ACCEPT
 sudo iptables -I DOCKER-USER -o lxdbr0 -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 ```
+
+### Reducing the snap size
+
+1. get a sense of what is big inside the installed snap:
+
+```shell
+ncdu /snap/luxcore/current
+```
+
+1. Find packages that can be removed from the `stage-packages` of the main part.
+1. Use an extension (`snapcraft list-extensions`) and also remove duplicated packages

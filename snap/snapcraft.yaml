@@ -22,13 +22,16 @@ architectures:
   - build-on: [amd64]
 
 apps:
-  luxcoreui:
-    command: usr/bin/luxcoreui
+  luxcore:
+    command: usr/bin/luxcoreconsole
     plugs: &plugs
       - opengl
       - x11
   luxcoreconsole:
     command: usr/bin/luxcoreconsole
+    plugs: *plugs
+  luxcoreui:
+    command: usr/bin/luxcoreui
     plugs: *plugs
 
 parts:
@@ -78,6 +81,7 @@ parts:
     stage-packages:
       # We can obtain the list of snap package with:
       # readelf --wide --dynamic luxcore |grep 'Shared library'|sed -E 's/.*\[(.*)]$/\1/'|xargs dpkg -S|cut -d: -f1|sort -u
+      - libblas64-3
       - libblosc1
       - libboost-chrono1.74.0
       - libboost-filesystem1.74.0
@@ -85,17 +89,15 @@ parts:
       - libboost-regex1.74.0
       - libboost-serialization1.74.0
       - libboost-thread1.74.0
-      - libc6
       - libembree3-3
-      - libgcc-s1
       - libgl1
       - libglib2.0-0
       - libglib2.0-dev
       - libgomp1
       - libgtk-3-0
       - libilmbase25
+      - liblapack64-3
       - libopenimageio2.2
-      - libstdc++6
       - libtbb2 # core20: libtbb / version 2020.3-1
       - libx11-6
       - libxcursor1
@@ -126,3 +128,23 @@ parts:
       [ -d $CRAFT_PART_INSTALL/usr/bin ] || mkdir $CRAFT_PART_INSTALL/usr/bin
       cp -f $CRAFT_PART_BUILD/bin/luxcoreui $CRAFT_PART_INSTALL/usr/bin/luxcoreui
       cp -f $CRAFT_PART_BUILD/bin/luxcoreconsole $CRAFT_PART_INSTALL/usr/bin/luxcoreconsole
+    # stage:
+    #   - bin/luxcoreui
+    #   - bin/luxcoreconsole
+
+  cleanup:
+    after: [luxcore]
+    plugin: nil
+    override-prime: |
+      set -eux
+      for snap in "kf5-5-108-qt-5-15-10-core22-sdk"; do  # List all content-snaps you're using here
+        [ -d "/snap/$snap/current" ] && find "/snap/$snap/current" -type f,l -exec rm -f "$CRAFT_PRIME/{}" "$CRAFT_PRIME/usr/{}" \;
+      done
+      for cruft in bug lintian man; do
+        [ -d $CRAFT_PRIME/usr/share/doc ] && rm -rf $CRAFT_PRIME/usr/share/$cruft
+      done
+      [ -d $CRAFT_PRIME/usr/share/doc ] && find $CRAFT_PRIME/usr/share/doc -type f -not -name 'copyright' -delete
+      [ -d $CRAFT_PRIME/usr/share     ] && find $CRAFT_PRIME/usr/share -type d -empty -delete
+      [ -d $CRAFT_PRIME/usr/lib       ] && find $CRAFT_PRIME/usr/lib -type f,l \
+        -name 'libQt*.so*' `# remove all Qt libs pulled in from Ubuntu repos` \
+        -not -name 'libQt5Gamepad.so*' -delete `# for OpenSCAD`
