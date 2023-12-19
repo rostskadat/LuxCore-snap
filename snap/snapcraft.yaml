@@ -118,8 +118,8 @@ parts:
       # We reproduce the build command found in the LinuxCompile project at
       # REF: https://github.com/LuxCoreRender/LinuxCompile.git/build
       cmake -G "Unix Makefiles" -Wno-dev \
-        -DCMAKE_PREFIX_PATH=/usr/lib/$CRAFT_ARCH_TRIPLET:/usr/include/$CRAFT_ARCH_TRIPLET \
-        -DOIDN_SEARCH_PATH=$CRAFT_STAGE \
+        -DCMAKE_PREFIX_PATH=$CRAFT_STAGE/include:$CRAFT_STAGE/lib:/usr/lib/$CRAFT_ARCH_TRIPLET:/usr/include/$CRAFT_ARCH_TRIPLET \
+        -DOIDN_LIBRARY=$CRAFT_STAGE/lib/libOpenImageDenoise.so.2.1.0 \
         $CRAFT_PART_SRC
       cmake --build $CRAFT_PART_BUILD --target luxcoreui -- -j2
       cmake --build $CRAFT_PART_BUILD --target luxcoreconsole -- -j2
