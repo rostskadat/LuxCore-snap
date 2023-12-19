@@ -1,6 +1,6 @@
 name: luxcore
 base: core22
-adopt-info: luxcore
+adopt-info: version
 version: 0.0.1
 issues: https://github.com/rostskadat/LuxCore-snap/issues
 website: https://luxcorerender.org/
@@ -40,6 +40,15 @@ apps:
     plugs: *plugs
 
 parts:
+  version:
+    plugin: nil
+    build-packages:
+      - git
+    override-build: |
+      cd "${CRAFT_PROJECT_DIR}"
+      # git_hash=$(git rev-parse --short=8 HEAD)
+      craftctl set version=$(git describe --tags --abbrev=10)
+
   # There are no distribution package for OIDIN. We use a precompiled version
   # We should use 
   # $(dpkg-architecture --query DEB_TARGET_GNU_CPU)
@@ -113,7 +122,6 @@ parts:
       - zlib1g
     override-pull: |
       craftctl default
-      craftctl set version=$(git describe --tags --abbrev=10)
       # Adding missing include in boost serialization library
       patch --forward --directory=/ --strip=0 --input=$CRAFT_PROJECT_DIR/snap/local/patches/patch_001.patch || true
       # Missing conversion in spdlog library
@@ -130,9 +138,8 @@ parts:
       #   fails though)
       cmake -G "Unix Makefiles" -Wno-dev \
         -DCMAKE_PREFIX_PATH=/usr/lib/$CRAFT_ARCH_TRIPLET:/usr/include/$CRAFT_ARCH_TRIPLET \
-        -DOIDN_INCLUDE_PATH:PATH=$CRAFT_PART_INSTALL/include \
-        -DOIDN_LIBRARY:FILEPATH=$CRAFT_PART_INSTALL/lib/libOpenImageDenoise.so \
-        -Wno-dev \
+        -DOIDN_INCLUDE_PATH:PATH=$CRAFT_STAGE/include \
+        -DOIDN_LIBRARY:FILEPATH=$CRAFT_STAGE/lib/libOpenImageDenoise.so \
         -DCMAKE_INSTALL_PREFIX:PATH=/usr \
         -DCMAKE_BUILD_TYPE=Release \
         -DPYTHON_INCLUDE_DIR:PATH=/usr/include/python3.10 \
