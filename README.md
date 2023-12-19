@@ -22,8 +22,9 @@ There are three maintained channels for this snap:
 
 There are multiple apps/commands included in the snap:
 
-- `luxcore.luxcoreui`: Run luxcoreui
+- `luxcore`: Run luxcoreconsole
 - `luxcore.luxcoreconsole`: Run luxcoreconsole
+- `luxcore.luxcoreui`: Run luxcoreui
 
 ## Troubleshooting
 

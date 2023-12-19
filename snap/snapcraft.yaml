@@ -11,8 +11,9 @@ description: |
   photographic quality.
 
   Commands:
-    luxcore.luxcoreui: Run luxcoreui
+    luxcore: Run luxcoreconsole
     luxcore.luxcoreconsole: Run luxcoreconsole
+    luxcore.luxcoreui: Run luxcoreui
 
 grade: devel
 confinement: strict
@@ -81,6 +82,7 @@ parts:
     stage-packages:
       # We can obtain the list of snap package with:
       # readelf --wide --dynamic luxcore |grep 'Shared library'|sed -E 's/.*\[(.*)]$/\1/'|xargs dpkg -S|cut -d: -f1|sort -u
+      - libblas3
       - libblas64-3
       - libblosc1
       - libboost-chrono1.74.0
