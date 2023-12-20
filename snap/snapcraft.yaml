@@ -1,6 +1,8 @@
 name: luxcore
 base: core22
 version: git
+icon: snap/gui/logo.png
+source-code: https://github.com/rostskadat/LuxCore-snap.git
 issues: https://github.com/rostskadat/LuxCore-snap/issues
 website: https://luxcorerender.org/
 summary: A physically based and unbiased rendering engine
@@ -38,8 +40,12 @@ apps:
   luxcoreui:
     extensions: [gnome]
     command: usr/bin/luxcoreui
+    common-id: org.luxcorerender.LuxCore.desktop
+    desktop: usr/share/applications/org.luxcorerender.LuxCore.desktop
     plugs: *plugs
     environment: *environment
+    command-chain:
+      - snap/command-chain/desktop-launch
 
 parts:
   # There are no distribution package for OIDIN. We use a precompiled version
@@ -136,9 +142,13 @@ parts:
       [ -d $CRAFT_PART_INSTALL/usr/bin ] || mkdir $CRAFT_PART_INSTALL/usr/bin
       cp -f $CRAFT_PART_BUILD/bin/luxcoreui $CRAFT_PART_INSTALL/usr/bin/luxcoreui
       cp -f $CRAFT_PART_BUILD/bin/luxcoreconsole $CRAFT_PART_INSTALL/usr/bin/luxcoreconsole
-    # stage:
-    #   - bin/luxcoreui
-    #   - bin/luxcoreconsole
+    override-prime: |
+      craftctl default
+      for src in $(find $CRAFT_PROJECT_DIR/snap/local/usr/share -type f); do
+        dst=$CRAFT_PRIME/$(echo -n $src | sed -E "s#$CRAFT_PROJECT_DIR/snap/local/##")
+        mkdir -p $(dirname $dst)
+        cp -f $src $dst
+      done
 
   cleanup:
     after: [luxcore]

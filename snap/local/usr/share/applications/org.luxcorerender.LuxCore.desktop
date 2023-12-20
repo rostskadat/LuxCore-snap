@@ -1,0 +1,24 @@
+[Desktop Entry]
+Name=LuxCore
+Name[de]=LuxCore
+Name[ko]=LuxCore
+Name[pl]=LuxCore
+Name[ru]=LuxCore
+Comment=A physically based and unbiased rendering engine
+Comment[de]=Eine physikalisch basierte und unvoreingenommene Rendering-Engine
+Comment[ko]=물리적 기반의 편견 없는 렌더링 엔진
+Comment[pl]=Fizyczny i bezstronny silnik renderujący
+Comment[ru]=Физически обоснованный и беспристрастный движок рендеринга.
+GenericName=Graphic Render
+GenericName[de]=Grafisches Rendering
+GenericName[ko]=그래픽 렌더
+GenericName[pl]=Renderowanie graficzne
+GenericName[ru]=Графический рендеринг
+Exec=luxcoreui
+Terminal=false
+Type=Application
+Icon=${SNAP}/usr/share/icons/hicolor/256x256/apps/org.luxcorerender.LuxCore.png
+Categories=Graphics;Science;Education;
+StartupNotify=true
+StartupWMClass=LuxCore
+MimeType=application/x-extension-cfg;application/x-extension-scn
