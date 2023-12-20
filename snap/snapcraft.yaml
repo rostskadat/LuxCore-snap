@@ -13,9 +13,9 @@ description: |
   photographic quality.
 
   Commands:
-    luxcore: Run luxcoreconsole
-    luxcore.luxcoreconsole: Run luxcoreconsole
-    luxcore.luxcoreui: Run luxcoreui
+  * `luxcore`: Run luxcoreconsole
+  * `luxcore.luxcoreconsole`: Run luxcoreconsole
+  * `luxcore.luxcoreui`: Run luxcoreui
 
 grade: devel
 confinement: strict
