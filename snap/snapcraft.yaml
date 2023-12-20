@@ -28,12 +28,17 @@ apps:
     plugs: &plugs
       - opengl
       - x11
+      - home
+    environment: &environment
+      LD_LIBRARY_PATH: "$SNAP/usr/lib:$SNAP/usr/lib/$CRAFT_ARCH_TRIPLET:$SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/blas:$SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/lapack:$SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/dri:$LD_LIBRARY_PATH"
   luxcoreconsole:
     command: usr/bin/luxcoreconsole
     plugs: *plugs
+    environment: *environment
   luxcoreui:
     command: usr/bin/luxcoreui
     plugs: *plugs
+    environment: *environment
 
 parts:
   # There are no distribution package for OIDIN. We use a precompiled version
