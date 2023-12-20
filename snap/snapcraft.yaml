@@ -36,6 +36,7 @@ apps:
     plugs: *plugs
     environment: *environment
   luxcoreui:
+    extensions: [gnome]
     command: usr/bin/luxcoreui
     plugs: *plugs
     environment: *environment
