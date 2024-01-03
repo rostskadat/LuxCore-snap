@@ -1,10 +1,14 @@
 name: Promote Edge to Beta
 
 on:
+  # REF: https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#workflow_run
   # workflow_run:
-  #   workflows: ["Build Edge"]
+  #   workflows:
+  #     - Build Edge
   #   types:
   #     - completed
+  #   branches:
+  #     - main
   schedule:
     - cron: "0 4 * * 0" # Every Sunday at 4:00
   workflow_dispatch: # or manually
@@ -12,11 +16,12 @@ on:
 jobs:
   promote_edge_to_beta:
     runs-on: ubuntu-latest
+    # REF: https://docs.github.com/en/webhooks/webhook-events-and-payloads#workflow_run
     # if: |
     #   (
     #     github.event.workflow_run.event == 'push' &&
     #     github.event.workflow_run.conclusion == 'success'
-    #     github.event.workflow_run.is_tagged == 'success'
+    #     github.event.workflow_run.tag == 'v*'
     #   )
     steps:
     - uses: actions/checkout@v4

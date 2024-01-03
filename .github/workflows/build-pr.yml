@@ -6,7 +6,7 @@ on:
       - opened
       - synchronize
       - labeled
-    
+
 jobs:
   build_amd64:
     runs-on: ubuntu-latest
@@ -14,32 +14,30 @@ jobs:
       github.event.pull_request.state == 'open' &&
       (
         (
-          github.event.action == 'labeled' && 
+          github.event.action == 'labeled' &&
           github.event.label.name == 'safe to publish'
-        ) || 
+        ) ||
         (
-          github.event.action != 'labeled' && 
+          github.event.action != 'labeled' &&
           contains(github.event.pull_request.labels.*.name, 'safe to publish')
         )
       )
     steps:
-    - uses: actions/checkout@v3
-    - name: install snapcraft
-      run: |
-        sudo snap install snapcraft --classic
-    - name: build snap
-      run: |
-        sudo snapcraft --destructive-mode
-    - name: save PR data
-      run: |
-        mkdir -p ./pr-data
-        echo '${{ github.event.number }}' > ./pr-data/pr-number
-        echo '${{ github.event.pull_request.head.sha }}' > ./pr-data/pr-commit
-    - uses: actions/upload-artifact@v3
-      with:
-        name: snap
-        path: luxcore*.snap
-    - uses: actions/upload-artifact@v3
-      with:
-        name: pr-data
-        path: pr-data/
+      - uses: actions/checkout@v4
+      - uses: snapcore/action-build@v1
+        id: build
+        with:
+          snapcraft-args: "--enable-experimental-extensions"
+      - name: save PR data
+        run: |
+          mkdir -p ./pr-data
+          echo '${{ github.event.number }}' > ./pr-data/pr-number
+          echo '${{ github.event.pull_request.head.sha }}' > ./pr-data/pr-commit
+      - uses: actions/upload-artifact@v3
+        with:
+          name: snap
+          path: luxcore*.snap
+      - uses: actions/upload-artifact@v3
+        with:
+          name: pr-data
+          path: pr-data/

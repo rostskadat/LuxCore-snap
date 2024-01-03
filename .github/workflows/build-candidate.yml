@@ -1,15 +1,15 @@
-name: Build Edge
+name: Build Candidate
 
 on:
   push:
     branches:
-      - main
+      - stable
     paths:
       - 'snap/**.*'
   workflow_dispatch: # or manually
 
 jobs:
-  build_edge:
+  build_candidate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,4 +27,4 @@ jobs:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
         with:
           snap: ${{ steps.build.outputs.snap }}
-          release: edge
+          release: candidate
