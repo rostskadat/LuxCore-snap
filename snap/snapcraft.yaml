@@ -17,7 +17,7 @@ description: |
   * `luxcore.luxcoreconsole`: Run luxcoreconsole
   * `luxcore.luxcoreui`: Run luxcoreui
 
-grade: devel
+grade: stable
 confinement: strict
 compression: lzo
 license: LGPL-2.0-or-later
@@ -155,14 +155,8 @@ parts:
     plugin: nil
     override-prime: |
       set -eux
-      for snap in "kf5-5-108-qt-5-15-10-core22-sdk"; do  # List all content-snaps you're using here
-        [ -d "/snap/$snap/current" ] && find "/snap/$snap/current" -type f,l -exec rm -f "$CRAFT_PRIME/{}" "$CRAFT_PRIME/usr/{}" \;
-      done
       for cruft in bug lintian man; do
         [ -d $CRAFT_PRIME/usr/share/doc ] && rm -rf $CRAFT_PRIME/usr/share/$cruft
       done
       [ -d $CRAFT_PRIME/usr/share/doc ] && find $CRAFT_PRIME/usr/share/doc -type f -not -name 'copyright' -delete
       [ -d $CRAFT_PRIME/usr/share     ] && find $CRAFT_PRIME/usr/share -type d -empty -delete
-      [ -d $CRAFT_PRIME/usr/lib       ] && find $CRAFT_PRIME/usr/lib -type f,l \
-        -name 'libQt*.so*' `# remove all Qt libs pulled in from Ubuntu repos` \
-        -not -name 'libQt5Gamepad.so*' -delete `# for OpenSCAD`

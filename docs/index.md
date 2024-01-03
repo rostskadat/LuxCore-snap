@@ -2,13 +2,33 @@
 
 Documentation for internal processes.
 
+## General workflow
+
+All development should happen on the `main` branch. Additionally:
+
+* The git branch `main` points to the latest version for the `edge` channel.
+* Only git tagged versions on the `edge` branch will be published to the `beta` channel.
+* The git branch `stable` points to the latest version for the `candidate` channel.
+* Only git tagged versions on the `stable` branch will be published to the `stable` channel.
+
 ## How to make a new stable release
 
-* Create a PR that updates the `snap/snapcraft.yaml` file (see https://github.com/rostskadat/LuxCore-snap/pull/75 for example) and merge it to the `main` branch  
-  **Result:** Once merged this will build a `candidate` release.
-* Test the `candidate` release. If no issues present then...
-* Login to https://snapcraft.io/rostskadat/releases and promote the `candidate` release to `stable`
-  **Result:** Stable will now be the latest stable branch
+* Create a PR that updates the `snap/snapcraft.yaml` file (see https://github.com/rostskadat/LuxCore-snap/pull/75 for example) and merge it to the `stable` branch  
+  **Result:** Once merged this will build a snap for the `candidate` channel.
+* Test the `candidate` snap. If no issues is found then...
+* Tag the version on the `stable` branch
+  **Result:** this will publish a snap for the `stable` channel.
+
+## Building locally
+
+You can either build the snap directly or use the same workflow as the GitHub action (using [nektos/act](https://github.com/nektos/act) ):
+
+```shell
+act push --job build_edge \
+    --secret GITHUB_TOKEN="$(gh auth token)" \
+    --secret SNAPCRAFT_STORE_CREDENTIALS="$(cat ~/.snapcraft-credentials)" \
+    --workflows .github/workflows/build-edge.yml
+```
 
 ## Publishing Daily
 

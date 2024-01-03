@@ -119,7 +119,7 @@ jobs:
                 $ sudo snap install --channel=${snapChannel} luxcore
 
                 # If you already have the luxcore snap installed
-                $ sudo snap refresh --channel=${snapChannel} luxcore 
+                $ sudo snap refresh --channel=${snapChannel} luxcore
 
                 # Experimental: Parallel install (see https://github.com/FreeCAD/FreeCAD-snap/blob/master/docs/index.md#parallel-installs)
                 $ sudo snap set system experimental.parallel-instances=true

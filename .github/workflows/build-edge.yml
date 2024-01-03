@@ -1,0 +1,28 @@
+name: Build Edge
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # or manually
+
+jobs:
+  build_edge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: snapcore/action-build@v1
+        id: build
+        with:
+          snapcraft-args: "--enable-experimental-extensions"
+      - run: |
+          sudo snap install --dangerous ${{ steps.build.outputs.snap }}
+          /snap/bin/luxcore -h
+          /snap/bin/luxcore.luxcoreui -h
+          /snap/bin/luxcore.luxcoreconsole -h
+      - uses: snapcore/action-publish@v1
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        with:
+          snap: ${{ steps.build.outputs.snap }}
+          release: edge

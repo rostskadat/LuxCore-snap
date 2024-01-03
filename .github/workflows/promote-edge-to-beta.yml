@@ -1,0 +1,30 @@
+name: Promote Edge to Beta
+
+on:
+  # workflow_run:
+  #   workflows: ["Build Edge"]
+  #   types:
+  #     - completed
+  schedule:
+    - cron: "0 4 * * 0" # Every Sunday at 4:00
+  workflow_dispatch: # or manually
+
+jobs:
+  promote_edge_to_beta:
+    runs-on: ubuntu-latest
+    # if: |
+    #   (
+    #     github.event.workflow_run.event == 'push' &&
+    #     github.event.workflow_run.conclusion == 'success'
+    #     github.event.workflow_run.is_tagged == 'success'
+    #   )
+    steps:
+    - uses: actions/checkout@v4
+    - run: sudo snap install snapcraft --classic
+    - env:
+        SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+      run: |
+        edge_revision="$(curl -H 'Snap-Device-Series: 16' \
+          'https://api.snapcraft.io/v2/snaps/info/luxcore' \
+          | jq '."channel-map"[] | select(.channel.name=="edge").revision')"
+        snapcraft release luxcore "$edge_revision" beta
